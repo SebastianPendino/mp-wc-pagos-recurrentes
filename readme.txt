@@ -117,9 +117,10 @@ Los números y los nombres cambian según el país. Confírmalos en la documenta
 1. Entra en tu aplicación y abre Webhooks > Configurar notificaciones.
 2. Pega la URL que muestra el plugin en sus ajustes, con la forma `https://tutienda.com/wp-json/mpwcr/v1/webhook`. Debe ser HTTPS y pública.
 3. Configúrala en modo de prueba y en modo productivo, que tienen URLs separadas.
-4. Activa el evento "Planes y suscripciones". Cubre `subscription_preapproval` y `subscription_authorized_payment`, que son los dos que procesa el plugin.
-5. Copia la clave secreta que aparece ahí.
-6. El botón "Simular notificación" envía un ID falso. El plugin lo recibe, no lo encuentra en la API y responde 200, así que no se reintenta.
+4. Activa solo el evento "Planes y suscripciones", que está en "Otros eventos". Cubre `subscription_preapproval` (contrato) y `subscription_authorized_payment` (pago recurrente), que son los dos que procesa el plugin. No marques los demás (Pagos, Reclamos, Contracargos, etc.): el plugin los ignora.
+5. Copia la clave secreta que aparece ahí. Es una sola por aplicación y se genera al guardar la configuración.
+6. Si usas la URL en modo de prueba y en modo productivo, comprueba que cada modo tenga su clave. Si la clave no coincide con la del campo "Clave secreta del Webhook" del plugin, las notificaciones se rechazarán con "firma inválida". Si las claves de prueba y de producción son distintas, cambia también la clave del plugin al pasar de un modo a otro.
+7. El botón "Simular notificación" envía un ID falso. El plugin lo recibe, no lo encuentra en la API y responde 200, así que no se reintenta.
 
 **6. API**
 
@@ -178,6 +179,20 @@ En los ajustes de la pasarela, sección "Registros". Los errores se registran si
 = ¿Cómo pruebo en modo Sandbox? =
 
 Activa el modo Sandbox, usa las credenciales de prueba y compra con el email de un usuario comprador de prueba de Mercado Pago como email de facturación. Paga con una tarjeta de prueba (por ejemplo, titular `APRO` para un pago aprobado). Los detalles están en la sección Installation.
+
+= ¿Qué eventos debo activar al configurar el Webhook en Mercado Pago? =
+
+Solo "Planes y suscripciones", que está en "Otros eventos". Incluye los dos temas que procesa el plugin: `subscription_preapproval` (estado del contrato) y `subscription_authorized_payment` (cada cobro del ciclo). El subevento de planes (`subscription_preapproval_plan`) no hace falta. No marques los demás eventos, ni siquiera "Pagos": el plugin los descarta y solo generarían tráfico inútil.
+
+= Las notificaciones se rechazan con "firma inválida". ¿Qué hago? =
+
+La clave secreta del plugin no coincide con la del Webhook de Mercado Pago. Comprueba lo siguiente:
+
+* La clave secreta es una sola por aplicación y se genera al guardar la configuración del Webhook. Cópiala en el campo "Clave secreta del Webhook" del plugin.
+* Si usas la URL en modo de prueba y en modo productivo, comprueba que cada modo tenga su clave. Si las claves son distintas, cambia la del plugin al pasar de un modo a otro.
+* Para descartar que sea un problema de firma, deja el campo vacío un momento: sin clave, el plugin no valida la firma. Cuando funcione, vuelve a poner la clave.
+
+El motivo del rechazo aparece en la "Última notificación recibida" de los ajustes de la pasarela y en el registro.
 
 = ¿Necesito alguna clave de API además del Access Token? =
 
